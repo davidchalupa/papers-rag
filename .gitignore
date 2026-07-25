@@ -1,0 +1,7 @@
+models
+git
+docs_local
+.idea
+rag_index_cache.pkl
+__pycache__
+**/__pycache
