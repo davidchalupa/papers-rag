@@ -109,6 +109,37 @@ def retrieve_context(query, index_data, embed_model, top_k=7):
     return retrieved_chunks
 
 
+def generate_answer(query, index_data, embed_model, llm):
+    """Retrieves context and generates an answer for a given query."""
+    # Retrieve chunks
+    matched_chunks = retrieve_context(query, index_data, embed_model, top_k=7)
+
+    # Format context explicitly showing source attribution
+    context_str = ""
+    for i, chunk in enumerate(matched_chunks, 1):
+        context_str += f"--- CONTEXT BLOCK {i} (Source Document: {chunk['source']}) ---\n"
+        context_str += f"{chunk['text']}\n\n"
+
+    # Construct standard clean prompt layout
+    llm_prompt = (
+        "System: You are an expert scientific research assistant. "
+        "Analyze the provided context blocks extracted from local PDF documents to answer the user query. "
+        "Every context block explicitly lists its 'Source Document' filename at the top.\n\n"
+        f"CONTEXT:\n{context_str}\n"
+        f"USER QUERY: {query}"
+    )
+
+    # Generate response
+    response = llm(
+        llm_prompt,
+        max_tokens=512,
+        temperature=0.2,  # Low temp for factual extraction
+        stop=["[/INST]", "</s>"]
+    )
+
+    return response["choices"][0]["text"].strip()
+
+
 def main():
     parser = argparse.ArgumentParser(description="Simple Local RAG CLI for Scientific Papers")
     parser.add_argument("directory", help="Path to the directory containing your PDF files")
@@ -160,33 +191,8 @@ def main():
 
             print("\nRetrieving context and generating answer...")
 
-            # Retrieve chunks
-            matched_chunks = retrieve_context(query, index_data, embed_model, top_k=7)
-
-            # Format context explicitly showing source attribution
-            context_str = ""
-            for i, chunk in enumerate(matched_chunks, 1):
-                context_str += f"--- CONTEXT BLOCK {i} (Source Document: {chunk['source']}) ---\n"
-                context_str += f"{chunk['text']}\n\n"
-
-            # Construct standard clean prompt layout
-            llm_prompt = (
-                "System: You are an expert scientific research assistant. "
-                "Analyze the provided context blocks extracted from local PDF documents to answer the user query. "
-                "Every context block explicitly lists its 'Source Document' filename at the top.\n\n"
-                f"CONTEXT:\n{context_str}\n"
-                f"USER QUERY: {query}"
-            )
-
-            # Generate response
-            response = llm(
-                llm_prompt,
-                max_tokens=512,
-                temperature=0.2,  # Low temp for factual extraction
-                stop=["[/INST]", "</s>"]
-            )
-
-            answer = response["choices"][0]["text"].strip()
+            answer = generate_answer(query, index_data, embed_model, llm)
+            
             print("\nAssistant Response:")
             print(answer)
             print("\n" + "-" * 40)
