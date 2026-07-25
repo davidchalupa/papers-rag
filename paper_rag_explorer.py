@@ -6,6 +6,7 @@ import numpy as np
 import fitz  # PyMuPDF
 from sentence_transformers import SentenceTransformer
 from llama_cpp import Llama
+from prompt_toolkit import prompt
 
 # Model Path Configurations
 MINISTRAL_PATH = "models/Ministral-8B-Instruct-2410-Q4_K_M.gguf"
@@ -143,18 +144,21 @@ def main():
 
     print("\n" + "=" * 50)
     print(f" RAG ASSISTANT READY ({model_name} Mode). Ask your questions.")
+    print(" Press [Alt]+[Enter] or [Esc] then [Enter] to submit your query.")
     print(" Type 'exit' or 'quit' to close.")
     print("=" * 50 + "\n")
 
     while True:
         try:
-            query = input("\nUser Query: ").strip()
+            # Replaced standard input() with prompt_toolkit's prompt()
+            query = prompt("\nUser Query (Alt+Enter to submit):\n", multiline=True).strip()
+
             if not query:
                 continue
             if query.lower() in ['exit', 'quit']:
                 break
 
-            print("Retrieving context and generating answer...")
+            print("\nRetrieving context and generating answer...")
 
             # Retrieve chunks
             matched_chunks = retrieve_context(query, index_data, embed_model, top_k=7)
@@ -166,7 +170,7 @@ def main():
                 context_str += f"{chunk['text']}\n\n"
 
             # Construct standard clean prompt layout
-            prompt = (
+            llm_prompt = (
                 "System: You are an expert scientific research assistant. "
                 "Analyze the provided context blocks extracted from local PDF documents to answer the user query. "
                 "Every context block explicitly lists its 'Source Document' filename at the top.\n\n"
@@ -176,7 +180,7 @@ def main():
 
             # Generate response
             response = llm(
-                prompt,
+                llm_prompt,
                 max_tokens=512,
                 temperature=0.2,  # Low temp for factual extraction
                 stop=["[/INST]", "</s>"]
@@ -187,7 +191,8 @@ def main():
             print(answer)
             print("\n" + "-" * 40)
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
+            # Added EOFError to gracefully handle Ctrl+D
             break
         except Exception as e:
             print(f"\nAn error occurred during generation: {e}")
