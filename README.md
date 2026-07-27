@@ -18,18 +18,18 @@ papers-rag/
 
 ## Key Components
 
-### `paper_rag_explorer.py`
-- **Functionality**: 
-  - Extracts text chunks from PDFs, builds the index for efficient querying.
-  - Provides 
-- **Modes**:
-  - default: Uses the Ministral-8B-Instruct-2410-Q4_K_M.gguf model.
-  - `--fast`: Uses the rocket-3b.Q4_K_M.gguf model.
+- `paper_rag_explorer.py`
+  - **Functionality**: 
+    - Extracts text chunks from PDFs, builds the index for efficient querying.
+    - Provides the interactive session for research paper analysis.
+  - **Modes**:
+    - default: Uses the Ministral-8B-Instruct-2410-Q4_K_M.gguf model.
+    - `--fast`: Uses the rocket-3b.Q4_K_M.gguf model.
 
-### `test_paper_rag_explorer.py`
-- **Functionality**: Tests the `paper_rag_explorer.py` module.
-- **Tests**:
-  - `test_algorithm_abbreviation_extraction()`: Tests if the RAG can successfully extract the specific algorithm abbreviation.
+- `test_paper_rag_explorer.py`
+  - **Functionality**: Tests the `paper_rag_explorer.py` module.
+  - **Tests**:
+    - `test_algorithm_abbreviation_extraction()`: Tests if the RAG can successfully extract the specific algorithm abbreviation.
 
 ### `downloaders/`
 - **Functionality**: Scripts for downloading models from Hugging Face.
