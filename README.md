@@ -6,16 +6,6 @@ a Retrieval-Augmented Generation (RAG) model. The primary focus is on extracting
 building an index for efficient querying, and generating answers to user queries based on the indexed
 data, specifically tailored for research paper analysis.
 
-## Project Structure
-```
-papers-rag/
-├── paper_rag_explorer.py
-├── requirements.txt
-├── test_paper_rag_explorer.py
-├── docs/
-├── downloaders/
-```
-
 ## Key Components
 
 - `paper_rag_explorer.py`
@@ -24,15 +14,15 @@ papers-rag/
     - Provides the interactive session for research paper analysis.
   - **Modes**:
     - default: Uses the Ministral-8B-Instruct-2410-Q4_K_M.gguf model.
-    - `--fast`: Uses the rocket-3b.Q4_K_M.gguf model.
+    - `--fast`: Uses the rocket-3b.Q4_K_M.gguf model (faster responses).
 
 - `test_paper_rag_explorer.py`
   - **Functionality**: Tests the `paper_rag_explorer.py` module.
   - **Tests**:
     - `test_algorithm_abbreviation_extraction()`: Tests if the RAG can successfully extract the specific algorithm abbreviation.
 
-### `downloaders/`
-- **Functionality**: Scripts for downloading models from Hugging Face.
+- `downloaders/`
+  - **Functionality**: Scripts for downloading models from Hugging Face.
 
 ## Usage
 ### Downloading Models
@@ -43,9 +33,14 @@ python downloaders/download_gguf_rocket_3b.py
 ```
 
 ### Running the Papers RAG Explorer
-To extract text chunks from PDFs, run:
+To start Papers RAG Explorer, run:
 ```bash
 python paper_rag_explorer.py
+```
+
+To start Papers RAG Explorer in faster mode (using rocket-3b.Q4_K_M model), run:
+```bash
+python paper_rag_explorer.py --fast
 ```
 
 ### Running Tests
