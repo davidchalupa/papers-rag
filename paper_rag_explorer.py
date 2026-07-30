@@ -1,3 +1,9 @@
+"""
+paper-rag-explorer
+
+A RAG pipeline used for analysis of PDF documents, specialized in scientific papers.
+"""
+
 import os
 import sys
 import pickle
