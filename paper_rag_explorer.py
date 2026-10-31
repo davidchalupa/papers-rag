@@ -126,24 +126,31 @@ def generate_answer(query, index_data, embed_model, llm):
         context_str += f"--- CONTEXT BLOCK {i} (Source Document: {chunk['source']}) ---\n"
         context_str += f"{chunk['text']}\n\n"
 
-    # Construct standard clean prompt layout
-    llm_prompt = (
-        "System: You are an expert scientific research assistant. "
-        "Analyze the provided context blocks extracted from local PDF documents to answer the user query. "
-        "Every context block explicitly lists its 'Source Document' filename at the top.\n\n"
-        f"CONTEXT:\n{context_str}\n"
-        f"USER QUERY: {query}"
-    )
+    # Use standard chat roles instead of a raw text string layout.
+    # llama_cpp's create_chat_completion automatically applies the model's chat template.
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are an expert scientific research assistant. "
+                "Analyze the provided context blocks extracted from local PDF documents to answer the user query accurately. "
+                "Every context block explicitly lists its 'Source Document' filename at the top."
+            )
+        },
+        {
+            "role": "user",
+            "content": f"CONTEXT:\n{context_str}\n\nUSER QUERY: {query}"
+        }
+    ]
 
-    # Generate response
-    response = llm(
-        llm_prompt,
+    # Generate response using chat completion interface
+    response = llm.create_chat_completion(
+        messages=messages,
         max_tokens=512,
-        temperature=0.2,  # Low temp for factual extraction
-        stop=["[/INST]", "</s>"]
+        temperature=0.2  # Low temp for factual extraction
     )
 
-    return response["choices"][0]["text"].strip()
+    return response["choices"][0]["message"]["content"].strip()
 
 
 def main():
@@ -198,7 +205,7 @@ def main():
             print("\nRetrieving context and generating answer...")
 
             answer = generate_answer(query, index_data, embed_model, llm)
-            
+
             print("\nAssistant Response:")
             print(answer)
             print("\n" + "-" * 40)
