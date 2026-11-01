@@ -24,6 +24,42 @@ CHUNK_SIZE = 600  # Character count per chunk
 CHUNK_OVERLAP = 150
 
 
+def load_llm_with_fallback(selected_model_path, n_ctx=4096):
+    """Attempts to load the model on GPU, falling back to CPU if it fails."""
+    cpu_threads = os.cpu_count() or 4
+
+    # 1. Try loading with full GPU offloading (-1 layers)
+    try:
+        print(f"Attempting to load model with NVIDIA GPU acceleration (n_gpu_layers=-1)...")
+        llm = Llama(
+            model_path=selected_model_path,
+            n_ctx=n_ctx,
+            n_threads=cpu_threads,
+            n_gpu_layers=-1,  # Offload all layers to GPU
+            verbose=False
+        )
+        print("Successfully initialized model on GPU! 🚀")
+        return llm
+    except Exception as e:
+        print(f"GPU initialization failed or GPU not available: {e}")
+        print("Falling back to CPU execution...")
+
+    # 2. CPU Fallback
+    try:
+        llm = Llama(
+            model_path=selected_model_path,
+            n_ctx=n_ctx,
+            n_threads=cpu_threads,
+            n_gpu_layers=0,  # 0 layers on GPU (Pure CPU mode)
+            verbose=False
+        )
+        print("Successfully initialized model on CPU fallback mode. 💻")
+        return llm
+    except Exception as e:
+        print(f"Fatal Error: Could not initialize model on CPU either. Error: {e}")
+        sys.exit(1)
+
+
 def extract_chunks_from_pdfs(pdf_dir):
     """Reads all PDFs in a directory and splits them into chunks with metadata."""
     chunks = []
@@ -180,11 +216,13 @@ def main():
         print(f"Error: Model file not found at {selected_model_path}. Please check your path assignments.")
         sys.exit(1)
 
-    llm = Llama(
-        model_path=selected_model_path,
-        n_ctx=4096,
-        n_threads=os.cpu_count() or 4
-    )
+    # llm = Llama(
+    #     model_path=selected_model_path,
+    #     n_ctx=4096,
+    #     n_threads=os.cpu_count() or 4
+    # )
+
+    llm = load_llm_with_fallback(selected_model_path, n_ctx=4096)
 
     print("\n" + "=" * 50)
     print(f" RAG ASSISTANT READY ({model_name} Mode). Ask your questions.")

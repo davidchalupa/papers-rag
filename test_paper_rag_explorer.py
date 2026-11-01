@@ -7,6 +7,7 @@ from llama_cpp import Llama
 from paper_rag_explorer import (
     build_or_load_index,
     generate_answer,
+    load_llm_with_fallback,
     MINISTRAL_PATH,
     ROCKET_PATH,
     EMBED_MODEL_NAME
@@ -32,12 +33,14 @@ class TestRAGExplorer(unittest.TestCase):
 
         # Select model based on FAST_MODE flag
         model_path = ROCKET_PATH if FAST_MODE else MINISTRAL_PATH
-        cls.llm = Llama(
-            model_path=model_path,
-            n_ctx=4096,
-            n_threads=os.cpu_count() or 4,
-            verbose=False
-        )
+        # cls.llm = Llama(
+        #     model_path=model_path,
+        #     n_ctx=4096,
+        #     n_threads=os.cpu_count() or 4,
+        #     verbose=False
+        # )
+        cls.llm = load_llm_with_fallback(model_path, n_ctx=4096)
+
         print("--- Setup Complete ---\n")
 
 
